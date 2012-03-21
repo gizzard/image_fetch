@@ -1,4 +1,5 @@
-# Retrieve a JSON Resource
+#!/usr/bin/env ruby
+
 require 'json'
 require 'httparty'
 require 'open-uri'
@@ -7,18 +8,22 @@ class Image_fetch
 	def initialize
 		@service
 		@username
+		@path
 	end
 	
 	def start
-		if ARGV.count != 2
-			puts "usage: #{$0} service username"
-			exit
-		else
+		if ARGV.count == 2
+			@service = ARGV[0]
+			@username = ARGV[1]		
+		elsif ARGV.count == 4 && ARGV[2] == 'to'
 			@service = ARGV[0]
 			@username = ARGV[1]
-			puts "Trying to download images for #{@username} from #{@service}\n\n"
-			choose_service
+			@path = ARGV[3]
+		else
+			puts "usage: #{$0} service username [to PATH]"
+			exit
 		end
+		choose_service
 	end
 	
 protected
@@ -35,6 +40,7 @@ protected
 	end
 	
 	def download_from_twitpic
+		puts "Trying to download images for #{@username} from #{@service}\n\n"
 		begin
 			response = JSON.parse HTTParty.get("http://api.twitpic.com/2/users/show.json?username=#{@username}").response.body
 		rescue Exception => e  
@@ -49,17 +55,22 @@ protected
 				exit
 			end
 			response['images'].each do |r|
-				begin
-					filename = "#{r['short_id']}.#{r['type']}"
-					puts "Download #{filename}"
-					open("#{filename}", 'wb') do |file|
-						file << open("http://twitpic.com/show/full/#{r['short_id']}").read
-					end
-				rescue Exception => e  
-						puts "Error: #{e.message} for #{filename}"
-				end
+				filename = "#{r['short_id']}.#{r['type']}"
+				puts "Download #{filename}"
+				save_file("http://twitpic.com/show/full/#{r['short_id']}", filename)
 			end
 		end
+	end
+end
+
+def save_file(url, filename)
+	begin
+		Dir.mkdir(@path) unless File.directory?(@path)
+		open(File.join(@path ||= ".", filename), 'wb') do |file|
+			file << open(url).read
+		end
+	rescue Exception => e  
+			puts "Error: #{e.message} for #{filename}"
 	end
 end
 
