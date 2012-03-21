@@ -1,9 +1,11 @@
 #!/usr/bin/env ruby
 
+require "rubygems"
+require "bundler/setup"
 require 'json'
 require 'httparty'
-require 'open-uri'
 require 'progressbar'
+require 'open-uri'
 
 class Image_fetch
 	def initialize
