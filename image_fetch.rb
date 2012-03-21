@@ -3,12 +3,14 @@
 require 'json'
 require 'httparty'
 require 'open-uri'
+require 'progressbar'
 
 class Image_fetch
 	def initialize
 		@service
 		@username
 		@path
+		@pbar
 	end
 	
 	def start
@@ -54,11 +56,14 @@ protected
 				end
 				exit
 			end
+			pbar = ProgressBar.new('TwitPic', response['images'].count)
 			response['images'].each do |r|
+				pbar.inc
 				filename = "#{r['short_id']}.#{r['type']}"
 				puts "Download #{filename}"
 				save_file("http://twitpic.com/show/full/#{r['short_id']}", filename)
 			end
+			pbar.finish
 		end
 	end
 end
