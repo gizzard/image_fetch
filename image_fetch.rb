@@ -3,7 +3,7 @@ require 'json'
 require 'httparty'
 require 'open-uri'
 
-class Image_backup
+class Image_fetch
 	def initialize
 		@service
 		@username
@@ -54,5 +54,5 @@ protected
 	end
 end
 
-image_backup = Image_backup.new
-image_backup.start
+image_fetch = Image_fetch.new
+image_fetch.start
