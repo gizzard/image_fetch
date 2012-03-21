@@ -35,8 +35,12 @@ protected
 	end
 	
 	def download_from_twitpic
-		response = JSON.parse HTTParty.get("http://api.twitpic.com/2/users/show.json?username=#{@username}").response.body
-	
+		begin
+			response = JSON.parse HTTParty.get("http://api.twitpic.com/2/users/show.json?username=#{@username}").response.body
+		rescue Exception => e  
+				puts e.message
+				exit
+		end
 		unless response.nil?
 			unless response['errors'].nil?
 				response['errors'].each do |e|
@@ -45,9 +49,14 @@ protected
 				exit
 			end
 			response['images'].each do |r|
-				puts "Download #{r['short_id']}.#{r['type']}"
-				open("#{r['short_id']}.#{r['type']}", 'wb') do |file|
-					file << open("http://twitpic.com/show/full/#{r['short_id']}").read
+				begin
+					filename = "#{r['short_id']}.#{r['type']}"
+					puts "Download #{filename}"
+					open("#{filename}", 'wb') do |file|
+						file << open("http://twitpic.com/show/full/#{r['short_id']}").read
+					end
+				rescue Exception => e  
+						puts "Error: #{e.message} for #{filename}"
 				end
 			end
 		end
