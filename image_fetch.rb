@@ -66,7 +66,6 @@ protected
 			response['images'].each do |r|
 				pbar.inc
 				filename = "#{r['short_id']}.#{r['type']}"
-				puts "Download #{filename}"
 				save_file("http://twitpic.com/show/full/#{r['short_id']}", filename)
 			end
 			pbar.finish
