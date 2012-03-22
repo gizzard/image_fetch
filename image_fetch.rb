@@ -13,6 +13,7 @@ class Image_fetch
 		@username
 		@path
 		@pbar
+		@yfrog_key = "09ACDLMP1271fcbfe5fe5480434a864440f83a17"
 	end
 	
 	def start
@@ -35,11 +36,14 @@ protected
 		case @service
 		when "twitpic"
 			download_from_twitpic
+		when "yfrog"
+			download_from_yfrog
 		else
 			puts "#{@service} isn't available as an service\n\n"
 			puts "Services:"
 			puts "---------"
 			puts "twitpic"
+			puts "yfrog"
 		end
 	end
 	
@@ -64,6 +68,38 @@ protected
 				filename = "#{r['short_id']}.#{r['type']}"
 				puts "Download #{filename}"
 				save_file("http://twitpic.com/show/full/#{r['short_id']}", filename)
+			end
+			pbar.finish
+		end
+	end
+end
+
+def download_from_yfrog
+	puts "Trying to download images for #{@username} from #{@service}\n\n"
+	begin
+		response = JSON.parse HTTParty.get("http://yfrog.com/api/userphotos.json?screen_name=#{@username}&devkey=#{@yfrog_key}").response.body
+	rescue Exception => e  
+			puts e.message
+			exit
+	end
+	unless response.nil?
+		unless response['errors'].nil?
+			response['errors'].each do |e|
+				puts e['message']
+			end
+			exit
+		end
+		if response['result']['photos'].count > 0
+			pbar = ProgressBar.new('yFrog', response['result']['photos'].count)
+			response['result']['photos'].each do |r|
+				begin
+					pbar.inc
+					photo = JSON.parse HTTParty.get("http://www.yfrog.com/api/oembed?url=http:\/\/yfrog.com/#{r['photo_link']}").response.body
+					filename = File.basename(photo['url'])
+					save_file(photo['url'], filename)
+				rescue Exception => e
+					puts e.message
+				end
 			end
 			pbar.finish
 		end
